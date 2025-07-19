@@ -29,8 +29,9 @@ def save_data(data):
 
 def log_workout():
     st.subheader("🏋️ Log a New Workout")
-    workout_type = st.text_input("Workout Type")
-    duration = st.number_input("Duration (minutes)", min_value=0, step=5)
+    col1, col2 = st.columns(2)
+    workout_type = col1.selectbox("Workout Type", ["Push", "Pull", "Legs", "Cardio", "Core", "Full Body", "Other"])
+    duration = col2.number_input("Duration (minutes)", min_value=0, step=5)
     notes = st.text_area("Notes (e.g., sets, reps, weight)")
     if st.button("Save Workout"):
         entry = {
@@ -42,12 +43,13 @@ def log_workout():
         data = load_data()
         data.append(entry)
         save_data(data)
-        st.success("Workout saved!")
+        st.success("✅ Workout saved!")
 
 def show_weekly_plan():
     st.subheader("📅 Weekly Workout Plan")
     for day, plan in DEFAULT_WEEKLY_PLAN.items():
-        st.write(f"**{day}**: {plan}")
+        st.markdown(f"**{day}**: {plan}")
+    st.image("https://cdn.pixabay.com/photo/2021/09/25/17/04/bodybuilding-6655036_1280.jpg", use_column_width=True)
 
 def analyze_progress():
     st.subheader("📊 Weekly Progress")
@@ -68,8 +70,35 @@ def analyze_progress():
     else:
         st.error("Step it up next week — you got this!")
 
+    # 🧠 Autonomous AI Agent: Smart Progress Coach
+    suggest_from_agent(data)
+
+def suggest_from_agent(data):
+    today = datetime.date.today()
+    week_data = [
+        entry for entry in data
+        if datetime.datetime.strptime(entry["date"], "%Y-%m-%d").date() >= today - datetime.timedelta(days=7)
+    ]
+    types_done = [entry["workout_type"].lower() for entry in week_data]
+    suggestions = []
+
+    if "legs" not in types_done:
+        suggestions.append("🦵 Try not to skip leg day this week!")
+    if "cardio" not in types_done:
+        suggestions.append("❤️‍🔥 Add at least one cardio session to improve heart health.")
+    if len(week_data) < 3:
+        suggestions.append("📅 Let's aim for 3+ workouts this week!")
+
+    if suggestions:
+        st.markdown("---")
+        st.subheader("🧠 Smart Progress Coach Suggestions")
+        for tip in suggestions:
+            st.info(tip)
+
 # Streamlit page layout
+st.set_page_config(page_title="AI Fitness Coach", layout="centered")
 st.title("🤖 AI Fitness Coach")
+
 option = st.sidebar.selectbox(
     "Choose an option:",
     ("Log Workout", "Show Weekly Plan", "Analyze Progress")
@@ -81,3 +110,4 @@ elif option == "Show Weekly Plan":
     show_weekly_plan()
 elif option == "Analyze Progress":
     analyze_progress()
+
