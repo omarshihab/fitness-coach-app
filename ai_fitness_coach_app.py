@@ -5,9 +5,22 @@ import datetime
 import json
 import os
 
-WORKOUT_FILE = "fitness_log.json"
-MEAL_FILE = "meal_log.json"
-BODY_STATS_FILE = "body_stats.json"
+IMAGE_EMOJI = "🏋️"
+
+# Save and load using username-based filenames
+def get_filename(base, username):
+    return f"{base}_{username}.json"
+
+def load_data(filename):
+    if not os.path.exists(filename):
+        return []
+    with open(filename, "r") as file:
+        return json.load(file)
+
+def save_data(filename, data):
+    with open(filename, "w") as file:
+        json.dump(data, file, indent=2)
+
 DEFAULT_WEEKLY_PLAN = {
     "Monday": "Push (Chest, Shoulders, Triceps)",
     "Tuesday": "Pull (Back, Biceps)",
@@ -17,38 +30,39 @@ DEFAULT_WEEKLY_PLAN = {
     "Saturday": "Core + Cardio",
     "Sunday": "Rest"
 }
-IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/e/e7/Gym_workout_equipment.jpg"
-
-
-def load_data(filename):
-    if not os.path.exists(filename):
-        return {}
-    with open(filename, "r") as file:
-        return json.load(file)
-
-
-def save_data(filename, data):
-    with open(filename, "w") as file:
-        json.dump(data, file, indent=2)
-
 
 st.title("🤖 AI Fitness Coach")
-st.sidebar.header("Login")
-username = st.sidebar.text_input("Enter your username")
+username = st.sidebar.text_input("Enter your username to get started")
 
 if not username:
-    st.warning("Please enter your username to continue.")
+    st.warning("Please enter your username.")
     st.stop()
 
-# Define per-user filenames
-user_workout_file = f"{username}_workout.json"
-user_meal_file = f"{username}_meal.json"
-user_stats_file = f"{username}_stats.json"
-user_weekly_plan_file = f"{username}_plan.json"
+# Filenames per user
+WORKOUT_FILE = get_filename("fitness_log", username)
+MEAL_FILE = get_filename("meal_log", username)
+BODY_STATS_FILE = get_filename("body_stats", username)
+WEEKLY_PLAN_FILE = get_filename("weekly_plan", username)
 
+# Function to customize weekly plan
+def customize_weekly_plan():
+    st.subheader("📝 Customize Your Weekly Plan")
+    user_plan = {}
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    for day in days:
+        user_plan[day] = st.text_input(f"{day} Plan", DEFAULT_WEEKLY_PLAN.get(day, ""))
+    if st.button("Save Weekly Plan"):
+        save_data(WEEKLY_PLAN_FILE, user_plan)
+        st.success("✅ Weekly plan saved!")
+
+# Load user plan or fallback to default
+try:
+    weekly_plan = load_data(WEEKLY_PLAN_FILE)
+except:
+    weekly_plan = DEFAULT_WEEKLY_PLAN
 
 def log_workout():
-    st.subheader("🏋️ Log a New Workout")
+    st.subheader(f"{IMAGE_EMOJI} Log a New Workout")
     workout_type = st.text_input("Workout Type (e.g., Chest Day, Cardio, Yoga)")
     duration = st.number_input("Duration (minutes)", min_value=0, step=5)
     notes = st.text_area("Details (sets, reps, weights, or feelings)")
@@ -59,37 +73,20 @@ def log_workout():
             "duration": duration,
             "notes": notes
         }
-        data = load_data(user_workout_file)
-        if not isinstance(data, list):
-            data = []
+        data = load_data(WORKOUT_FILE)
         data.append(entry)
-        save_data(user_workout_file, data)
+        save_data(WORKOUT_FILE, data)
         st.success("✅ Workout saved!")
-
 
 def show_weekly_plan():
     st.subheader("📅 Weekly Workout Plan")
-    plan_data = load_data(user_weekly_plan_file)
-    if not plan_data:
-        plan_data = DEFAULT_WEEKLY_PLAN
-    for day, plan in plan_data.items():
-        st.write(f"**{day}**: {plan} 💡")
-
-
-def customize_weekly_plan():
-    st.subheader("✏️ Customize Your Weekly Plan")
-    updated_plan = {}
-    for day in DEFAULT_WEEKLY_PLAN:
-        updated_plan[day] = st.text_input(f"{day}'s Plan", value=DEFAULT_WEEKLY_PLAN[day])
-    if st.button("Save Weekly Plan"):
-        save_data(user_weekly_plan_file, updated_plan)
-        st.success("✅ Weekly plan updated!")
-
+    for day, plan in weekly_plan.items():
+        st.write(f"**{day}**: {plan} — Stay consistent!")
 
 def analyze_progress():
     st.subheader("📊 Weekly Progress")
-    data = load_data(user_workout_file)
-    if not isinstance(data, list) or not data:
+    data = load_data(WORKOUT_FILE)
+    if not data:
         st.warning("No workouts logged yet.")
         return
     last_week = datetime.date.today() - datetime.timedelta(days=7)
@@ -99,12 +96,11 @@ def analyze_progress():
     )
     st.write(f"You worked out **{count}** time(s) in the last 7 days.")
     if count >= 4:
-        st.success("💪 Great consistency! You're on the right track.")
+        st.success("💪 Great consistency! Keep going.")
     elif 2 <= count < 4:
-        st.info("You're doing okay — try aiming for at least 4 sessions.")
+        st.info("You're doing okay — aim for 4+ workouts next week.")
     else:
-        st.error("Step it up next week. Let's build momentum together!")
-
+        st.error("Let’s push for a stronger week ahead!")
 
 def meal_log():
     st.subheader("🍽️ Meal Log & AI Feedback")
@@ -120,22 +116,18 @@ def meal_log():
             "lunch": lunch,
             "dinner": dinner
         }
-        data = load_data(user_meal_file)
-        if not isinstance(data, list):
-            data = []
+        data = load_data(MEAL_FILE)
         data.append(meal_entry)
-        save_data(user_meal_file, data)
+        save_data(MEAL_FILE, data)
         st.success("🍏 Meals saved! Here's your feedback:")
 
         all_meals = " ".join([breakfast, snack, lunch, dinner]).lower()
-
         if "candy" in all_meals or "soda" in all_meals:
-            st.warning("⚠️ Try to cut back on sugary items — swap soda with water or fruit-infused drinks.")
-        elif any(x in all_meals for x in ["fruits", "vegetables", "chicken", "salmon", "quinoa"]):
-            st.success("✅ Great job! You're eating nutritious foods. Keep it up.")
+            st.warning("🍬 Reduce sugary snacks and try healthier swaps like fruit or yogurt.")
+        elif any(food in all_meals for food in ["fruit", "vegetable", "chicken", "egg", "fish"]):
+            st.success("✅ Great nutrition choices! Balanced meals fuel results.")
         else:
-            st.info("🥗 Try to include more proteins, fiber, and natural foods. Avoid processed snacks.")
-
+            st.info("🥗 Add more whole foods, protein, and fiber. Avoid processed snacks.")
 
 def body_stats():
     st.subheader("📏 Body Stats & Goals")
@@ -149,36 +141,20 @@ def body_stats():
             "waist": waist,
             "goal": goal
         }
-        data = load_data(user_stats_file)
-        if not isinstance(data, list):
-            data = []
+        data = load_data(BODY_STATS_FILE)
         data.append(entry)
-        save_data(user_stats_file, data)
-        st.success("📊 Stats saved! Track changes weekly for best results.")
-
+        save_data(BODY_STATS_FILE, data)
+        st.success("📊 Stats saved! Track weekly for progress.")
 
 def ai_suggestions():
     st.subheader("🤖 AI Suggestions")
-    st.write("This AI assistant helps guide your weekly goals based on consistency and input logs.")
-    data = load_data(user_workout_file)
-    if isinstance(data, list) and len(data) >= 5:
-        st.info("🔥 You've been active! Add variation to your workouts to keep things fresh.")
-    else:
-        st.info("📅 Aim to build a routine. Start with 3x a week and build from there.")
-
+    st.markdown("- Add mobility stretches if you're sore.\n- Swap sugary drinks for lemon water.\n- End workouts with 5 minutes of deep breathing.")
 
 def motivation_corner():
-    st.subheader("🌟 Motivation Corner")
-    st.markdown(
-        """
-        - "The only bad workout is the one that didn’t happen."
-        - "Success starts with self-discipline."
-        - "Little progress is still progress! Keep going."
-        """
-    )
+    st.subheader("🔥 Motivation Corner")
+    st.markdown("> _\"You don't have to be extreme, just consistent.\"_ 💡\n> _\"Small steps lead to big changes.\"_ 🚶")
 
-
-# Sidebar
+# Sidebar options
 option = st.sidebar.selectbox(
     "Choose an option:",
     (
@@ -209,4 +185,5 @@ elif option == "AI Suggestions":
     ai_suggestions()
 elif option == "Motivation Corner":
     motivation_corner()
+
 
