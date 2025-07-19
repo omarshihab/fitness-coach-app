@@ -20,37 +20,24 @@ DEFAULT_WEEKLY_PLAN = {
     "Sunday": "Rest"
 }
 
-IMAGES = {
-    "Log Workout": "https://i.imgur.com/LgrvM8A.jpg",
-    "Show Weekly Plan": "https://i.imgur.com/E5ZC1VY.jpg",
-    "Analyze Progress": "https://i.imgur.com/yP1C8Sg.jpg",
-    "Meal Log & Feedback": "https://i.imgur.com/9OeQnPz.jpg",
-    "AI Suggestions": "https://i.imgur.com/0yH0Ald.jpg",
-    "Motivation Corner": "https://i.imgur.com/M5EYlIo.jpg",
-    "Body Stats & Goals": "https://i.imgur.com/hZo7NlU.jpg"
-}
+IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Gym_workout_equipment.jpg/640px-Gym_workout_equipment.jpg"
 
-def load_data(file):
-    if not os.path.exists(file):
+def load_data(filename):
+    if not os.path.exists(filename):
         return []
-    with open(file, "r") as f:
-        return json.load(f)
+    with open(filename, "r") as file:
+        return json.load(file)
 
-def save_data(data, file):
-    with open(file, "w") as f:
-        json.dump(data, f, indent=2)
-
-def display_image(title):
-    url = IMAGES.get(title)
-    if url:
-        st.image(url, use_container_width=True)
+def save_data(filename, data):
+    with open(filename, "w") as file:
+        json.dump(data, file, indent=2)
 
 def log_workout():
     st.subheader("🏋️ Log a New Workout")
-    display_image("Log Workout")
-    workout_type = st.text_input("Workout Type")
+    st.image(IMAGE_URL, use_container_width=True)
+    workout_type = st.text_input("Workout Type (e.g., Chest Day, Cardio, Yoga)")
     duration = st.number_input("Duration (minutes)", min_value=0, step=5)
-    notes = st.text_area("Notes (e.g., sets, reps, weight)")
+    notes = st.text_area("Details (sets, reps, weights, or feelings)")
     if st.button("Save Workout"):
         entry = {
             "date": str(datetime.date.today()),
@@ -60,18 +47,18 @@ def log_workout():
         }
         data = load_data(WORKOUT_FILE)
         data.append(entry)
-        save_data(data, WORKOUT_FILE)
-        st.success("Workout saved!")
+        save_data(WORKOUT_FILE, data)
+        st.success("✅ Workout saved! You’re building something awesome.")
 
 def show_weekly_plan():
     st.subheader("📅 Weekly Workout Plan")
-    display_image("Show Weekly Plan")
+    st.image(IMAGE_URL, use_container_width=True)
     for day, plan in DEFAULT_WEEKLY_PLAN.items():
-        st.write(f"**{day}**: {plan}")
+        st.write(f"**{day}**: {plan} — Stay consistent, prioritize form, and listen to your body.")
 
 def analyze_progress():
     st.subheader("📊 Weekly Progress")
-    display_image("Analyze Progress")
+    st.image(IMAGE_URL, use_container_width=True)
     data = load_data(WORKOUT_FILE)
     if not data:
         st.warning("No workouts logged yet.")
@@ -81,72 +68,51 @@ def analyze_progress():
         1 for entry in data
         if datetime.datetime.strptime(entry["date"], "%Y-%m-%d").date() >= last_week
     )
-    st.write(f"You've worked out **{count}** time(s) in the last 7 days.")
+    st.write(f"You worked out **{count}** time(s) in the last 7 days.")
     if count >= 4:
-        st.success("💪 Great consistency!")
+        st.success("💪 Great consistency! Keep pushing, champ.")
     elif 2 <= count < 4:
-        st.info("Doing okay — try to aim for 4+ workouts.")
+        st.info("You’re on the path — try to hit 4+ sessions next week.")
     else:
-        st.error("Step it up next week — you got this!")
+        st.error("Let’s get moving again — even a short session counts!")
 
-def log_meals():
-    st.subheader("🍽️ Meal Log & Feedback")
-    display_image("Meal Log & Feedback")
-    meals = {}
-    for meal in ["Breakfast", "Snack", "Lunch", "Dinner"]:
-        meals[meal] = st.text_input(f"What did you have for {meal}?")
-    if st.button("Analyze Meals"):
-        healthy_keywords = ["fruit", "vegetable", "chicken", "fish", "salad", "rice", "water"]
-        score = sum(any(word in meals[meal].lower() for word in healthy_keywords) for meal in meals)
-        entry = {"date": str(datetime.date.today()), **meals}
+def meal_log():
+    st.subheader("🍽️ Meal Log & AI Feedback")
+    st.image(IMAGE_URL, use_container_width=True)
+    breakfast = st.text_input("Breakfast")
+    snack = st.text_input("Snack")
+    lunch = st.text_input("Lunch")
+    dinner = st.text_input("Dinner")
+    if st.button("Submit Meals"):
+        meal_entry = {
+            "date": str(datetime.date.today()),
+            "breakfast": breakfast,
+            "snack": snack,
+            "lunch": lunch,
+            "dinner": dinner
+        }
         data = load_data(MEAL_FILE)
-        data.append(entry)
-        save_data(data, MEAL_FILE)
-        if score >= 3:
-            st.success("🥦 Great job! Your meals look healthy today.")
-        elif 1 <= score < 3:
-            st.info("Not bad! Add more fruits/veggies next time.")
+        data.append(meal_entry)
+        save_data(MEAL_FILE, data)
+        st.success("🍏 Meals saved! Here's your AI coach's feedback:")
+
+        all_meals = " ".join([breakfast, snack, lunch, dinner]).lower()
+
+        if "candy" in all_meals or "soda" in all_meals or "chips" in all_meals:
+            st.warning("🚨 Cut back on sugary and processed foods. Replace them with fruit, nuts, or yogurt.")
+        elif "fruit" in all_meals or "vegetable" in all_meals or "chicken" in all_meals or "egg" in all_meals:
+            st.success("✅ Clean eating! You’re fueling your body right.")
+        elif "bread" in all_meals or "rice" in all_meals:
+            st.info("🟡 Try switching to whole grain versions for more fiber and energy.")
         else:
-            st.warning("Try to eat cleaner tomorrow — you got this!")
-
-def ai_suggestions():
-    st.subheader("🧠 AI Suggestions")
-    display_image("AI Suggestions")
-    workout_data = load_data(WORKOUT_FILE)
-    meal_data = load_data(MEAL_FILE)
-    recent_workouts = len([w for w in workout_data if datetime.datetime.strptime(w["date"], "%Y-%m-%d").date() >= datetime.date.today() - datetime.timedelta(days=7)])
-    recent_meals = meal_data[-1] if meal_data else {}
-
-    if recent_workouts < 2:
-        st.warning("You haven’t trained much this week. Try to do 3–4 days!")
-    else:
-        st.success("Solid workout streak! Keep it up.")
-
-    if recent_meals:
-        if "salad" in str(recent_meals.values()).lower():
-            st.success("Nice food choices recently — keep eating clean!")
-        else:
-            st.info("Try to include more veggies or protein in meals.")
-
-def motivation_corner():
-    st.subheader("💬 Motivation Corner")
-    display_image("Motivation Corner")
-    st.write("Sometimes all you need is a little push!")
-    st.info("""
-    "Don't limit your challenges — challenge your limits."
-    "Success starts with self-discipline."
-    "You're one workout away from a good mood."
-    "Small progress is still progress."
-    "Consistency is key."
-    """
-    )
+            st.info("ℹ️ Try adding protein, fiber, and colorful veggies to your meals for a complete diet.")
 
 def body_stats():
     st.subheader("📏 Body Stats & Goals")
-    display_image("Body Stats & Goals")
-    weight = st.number_input("Current Weight (kg)", min_value=0.0)
-    waist = st.number_input("Waist Circumference (cm)", min_value=0.0)
-    goal = st.text_input("What’s your fitness goal?")
+    st.image(IMAGE_URL, use_container_width=True)
+    weight = st.number_input("Weight (kg)", min_value=0.0, step=0.5)
+    waist = st.number_input("Waist (cm)", min_value=0.0, step=0.5)
+    goal = st.text_input("What's your main fitness goal? (e.g., lose weight, build muscle)")
     if st.button("Save Stats"):
         entry = {
             "date": str(datetime.date.today()),
@@ -156,11 +122,35 @@ def body_stats():
         }
         data = load_data(BODY_STATS_FILE)
         data.append(entry)
-        save_data(data, BODY_STATS_FILE)
-        st.success("Body stats and goals saved!")
+        save_data(BODY_STATS_FILE, data)
+        st.success("📊 Stats saved! You’re one step closer to your goal.")
 
-st.set_page_config(page_title="AI Fitness Coach", layout="centered")
+def ai_suggestions():
+    st.subheader("🧠 AI Suggestions")
+    st.image(IMAGE_URL, use_container_width=True)
+    st.markdown("""
+    - Based on your activity, aim for **7–8 hours of sleep** each night.
+    - Consider **adding stretching** before bed to recover faster.
+    - If you’re tired mid-week, **do an active recovery** day instead of pushing through.
+    - Track your meals — small changes (like swapping white bread for whole grain) can make a big difference.
+    - Hydration tip: drink water **30 mins before meals** and reduce sugary drinks.
+    """)
+
+def motivation_corner():
+    st.subheader("🔥 Motivation Corner")
+    st.image(IMAGE_URL, use_container_width=True)
+    st.markdown("""
+    - “You don’t have to be extreme, just consistent.”
+    - “It’s you vs. you — no one else.”
+    - “Every rep counts. Every step matters.”
+    - “Progress > Perfection.”
+    - “Your future self is watching. Make them proud.”  
+    """)
+    st.info("Whenever you feel lazy, come back here for a boost.")
+
+# Streamlit layout
 st.title("🤖 AI Fitness Coach")
+st.image(IMAGE_URL, use_container_width=True)
 
 option = st.sidebar.selectbox(
     "Choose an option:",
@@ -169,9 +159,9 @@ option = st.sidebar.selectbox(
         "Show Weekly Plan",
         "Analyze Progress",
         "Meal Log & Feedback",
+        "Body Stats & Goals",
         "AI Suggestions",
-        "Motivation Corner",
-        "Body Stats & Goals"
+        "Motivation Corner"
     )
 )
 
@@ -182,10 +172,10 @@ elif option == "Show Weekly Plan":
 elif option == "Analyze Progress":
     analyze_progress()
 elif option == "Meal Log & Feedback":
-    log_meals()
+    meal_log()
+elif option == "Body Stats & Goals":
+    body_stats()
 elif option == "AI Suggestions":
     ai_suggestions()
 elif option == "Motivation Corner":
     motivation_corner()
-elif option == "Body Stats & Goals":
-    body_stats()
