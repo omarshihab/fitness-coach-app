@@ -1,4 +1,3 @@
-ai_fitness_coach_app.py
 
 import streamlit as st
 import datetime
