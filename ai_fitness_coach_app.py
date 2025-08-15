@@ -3,7 +3,7 @@ import random
 from openai import OpenAI
 
 # Initialize OpenAI client (reads your key from Streamlit secrets)
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client = OpenAI(api_key=st.secrets[""])
 
 # Initialize session state
 if "username" not in st.session_state:
