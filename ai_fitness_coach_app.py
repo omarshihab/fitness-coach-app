@@ -172,23 +172,25 @@ def ai_4day_workout():
     st.subheader("💪 AI 4-Day Workout Generator")
     goal = st.selectbox("🎯 Goal", ["Lose Weight", "Build Muscle", "Improve Stamina", "Stay Healthy"])
     equipment = st.text_input("🏋️ Available equipment (comma separated)", "Dumbbells, Resistance Bands, Pull-Up Bar")
+if st.button("Generate AI Plan"):
+    prompt = f"""
+    Create a detailed 4-day workout plan for a beginner whose goal is {goal}.
+    Available equipment: {equipment}.
+    Include exercise names, sets, reps, and notes for each day.
+    """  # ← Close the triple quotes here
 
-    if st.button("Generate AI Plan"):
-        prompt = f"""
-        Create a detailed 4-day workout plan for a beginner whose goal is {goal}.
-        Available equipment: {equipment}.
-        Include exercise names, sets, reps, and notes for each day.
-   try:
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a professional fitness trainer."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    st.markdown(response.choices[0].message.content)
-except Exception as e:
-    st.error(f"Error: {e}")
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a professional fitness trainer."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        st.markdown(response.choices[0].message.content)
+    except Exception as e:
+        st.error(f"Error: {e}")
+
 # UI – Dropdowns in sidebar
 st.title("🏋️ AI Fitness Coach App")
 
