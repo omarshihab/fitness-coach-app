@@ -1,4 +1,5 @@
 streamlit
-matplotlib
-pillow
+openai
 pandas
+numpy
+matplotlib
