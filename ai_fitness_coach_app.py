@@ -1,8 +1,9 @@
 import streamlit as st
 import random
-import openai
+from openai import OpenAI
 
-openai.api_key = "YOUR_OPENAI_API_KEY"
+# Initialize OpenAI client (reads your key from Streamlit secrets)
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # Initialize session state
 if "username" not in st.session_state:
@@ -179,14 +180,14 @@ def ai_4day_workout():
         Include exercise names, sets, reps, and notes for each day.
         """
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a professional fitness trainer."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            st.markdown(response.choices[0].message["content"])
+         response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": "You are a professional fitness trainer."},
+        {"role": "user", "content": prompt}
+    ]
+)
+st.markdown(response.choices[0].message.content)
         except Exception as e:
             st.error(f"Error: {e}")
 
