@@ -163,6 +163,20 @@ def hydration_log():
         st.session_state.user_data[username]["hydration"].append(water)
         st.success("🥤 Hydration logged!")
 
+# NEW: AI 4-Day Workout Generator (Static Example)
+def ai_4day_workout():
+    st.subheader("💪 AI 4-Day Workout Generator")
+    goal = st.selectbox("🎯 Goal", ["Lose Weight", "Build Muscle", "Improve Stamina", "Stay Healthy"])
+    if st.button("Generate Plan"):
+        plan = {
+            "Day 1": "Upper Body Strength – Bench Press 4x8, Pull-ups 4x6, Shoulder Press 3x10, Bicep Curls 3x12",
+            "Day 2": "Lower Body Strength – Squats 4x8, Lunges 3x12, Leg Press 3x10, Calf Raises 4x15",
+            "Day 3": "Push & Core – Push-ups 4x15, Dips 3x12, Plank 3x60s, Russian Twists 3x20",
+            "Day 4": "Pull & Cardio – Deadlifts 4x6, Bent Rows 3x10, Lat Pulldown 3x12, 20 min HIIT Cardio"
+        }
+        for day, routine in plan.items():
+            st.write(f"**{day}**: {routine}")
+
 # UI – Dropdowns in sidebar
 st.title("🏋️ AI Fitness Coach App")
 
@@ -176,7 +190,8 @@ with st.sidebar:
         "📈 Progress Tracker",
         "🏋️ Workout Log",
         "📓 Notes & Journal",
-        "💧 Hydration Log"
+        "💧 Hydration Log",
+        "💪 AI 4-Day Workout Generator"  # NEW SECTION
     ])
 
 # Route user to the selected section
@@ -198,6 +213,9 @@ elif section == "📓 Notes & Journal":
     notes_journal()
 elif section == "💧 Hydration Log":
     hydration_log()
+elif section == "💪 AI 4-Day Workout Generator":
+    ai_4day_workout()
+
 
 
 
