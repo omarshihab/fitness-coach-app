@@ -5,7 +5,7 @@ from openai import OpenAI
 # ---------------------------
 # HARD-CODE YOUR API KEY HERE
 # ---------------------------
-client = OpenAI(api_key="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")  
+client = OpenAI(api_key="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")
 
 st.set_page_config(page_title="AI Fitness Coach App", layout="wide")
 
@@ -14,7 +14,6 @@ st.set_page_config(page_title="AI Fitness Coach App", layout="wide")
 # ---------------------------
 if "username" not in st.session_state:
     st.session_state.username = ""
-
 if "user_data" not in st.session_state:
     st.session_state.user_data = {}
 
@@ -75,7 +74,6 @@ def meal_feedback():
     if st.button("Submit Meals"):
         full_day = f"{breakfast} {snack} {lunch} {dinner}".lower()
         feedback = []
-
         if "chips" in full_day or "soda" in full_day:
             feedback.append("⚠️ Try to reduce processed snacks and sugary drinks.")
         if "salad" in full_day or "vegetables" in full_day:
@@ -86,7 +84,6 @@ def meal_feedback():
             feedback.append("🍎 Good job adding fruits!")
         if not feedback:
             feedback.append("👍 Keep it up! Try to mix lean protein, veggies, and whole grains.")
-
         for f in feedback:
             st.write(f)
 
@@ -95,7 +92,6 @@ def body_stats_and_goals():
     height = st.number_input("📐 Height (cm)", min_value=100, max_value=250)
     weight = st.number_input("⚖️ Weight (kg)", min_value=20, max_value=200)
     goal = st.selectbox("🎯 Your Goal", ["Lose Weight", "Build Muscle", "Improve Stamina", "Stay Healthy"])
-
     if st.button("Save Stats"):
         st.session_state.user_data[username]["height"] = height
         st.session_state.user_data[username]["weight"] = weight
@@ -106,7 +102,6 @@ def show_weekly_plan():
     st.subheader("📅 Weekly Workout Plan")
     user_data = st.session_state.user_data[username]
     weekly_plan = user_data.get("weekly_plan", {})
-
     if not weekly_plan:
         st.info("You haven't added any plans yet.")
     else:
@@ -128,7 +123,6 @@ def progress_tracker():
     weight_change = st.number_input("📊 Change in weight (kg)", step=0.1)
     mood = st.selectbox("😊 How do you feel this week?", ["Great", "Okay", "Tired", "Motivated"])
     notes = st.text_area("📝 Any reflections or notes?")
-
     if st.button("Save Progress"):
         if "progress" not in st.session_state.user_data[username]:
             st.session_state.user_data[username]["progress"] = []
@@ -143,7 +137,6 @@ def workout_log():
     st.subheader("🏋️ Workout Log")
     workout = st.text_input("🧾 What workout did you do today?")
     duration = st.number_input("⏱️ Duration (minutes)", step=1)
-
     if st.button("Log Workout"):
         if "workouts" not in st.session_state.user_data[username]:
             st.session_state.user_data[username]["workouts"] = []
@@ -177,7 +170,7 @@ def hydration_log():
 def ai_4day_workout():
     st.subheader("💪 AI 4-Day Workout Generator")
 
-    # personalisation inputs
+    # personalisation inputs (optional)
     display_name = st.text_input("Your name (optional)", username)
     goal = st.selectbox("🎯 Goal", ["Lose Weight", "Build Muscle", "Improve Stamina", "Stay Healthy"])
     equipment = st.text_input("🏋️ Available equipment (comma separated)", "Dumbbells, Resistance Bands, Pull-Up Bar")
@@ -198,7 +191,7 @@ def ai_4day_workout():
         Day 4:
         Cool-down:
 
-        Each day must list exercises with sets and reps (4 sets per exercise where reasonable),
+        Each day must list exercises with sets and reps (4 sets per exercise where reasonable), 
         and brief notes for safety/progression. Keep it beginner-friendly if level is Beginner.
         """
 
@@ -213,36 +206,40 @@ def ai_4day_workout():
             )
             workout_text = resp.choices[0].message.content
 
-            # Save to session
+            # Save the raw plan to session for later download/reference
             st.session_state.user_data[username]["ai_4day_plan"] = workout_text
 
-            # Parse into sections
+            # Parse into sections based on headings
             headings = ["Warm-up", "Day 1", "Day 2", "Day 3", "Day 4", "Cool-down"]
             sections = {h: [] for h in headings}
             current = None
-
             for line in workout_text.splitlines():
                 stripped = line.strip()
                 lower = stripped.lower()
-                if lower.startswith("warm-up"): current = "Warm-up"; continue
-                elif lower.startswith("day 1"): current = "Day 1"; continue
-                elif lower.startswith("day 2"): current = "Day 2"; continue
-                elif lower.startswith("day 3"): current = "Day 3"; continue
-                elif lower.startswith("day 4"): current = "Day 4"; continue
-                elif lower.startswith("cool-down"): current = "Cool-down"; continue
-
+                if lower.startswith("warm-up"):
+                    current = "Warm-up"; continue
+                elif lower.startswith("day 1"):
+                    current = "Day 1"; continue
+                elif lower.startswith("day 2"):
+                    current = "Day 2"; continue
+                elif lower.startswith("day 3"):
+                    current = "Day 3"; continue
+                elif lower.startswith("day 4"):
+                    current = "Day 4"; continue
+                elif lower.startswith("cool-down"):
+                    current = "Cool-down"; continue
                 if current:
                     sections[current].append(stripped)
 
             st.success("Here’s your AI-generated 4-day plan!")
 
-            # Show as dropdowns
+            # Show as dropdowns/expanders
             for h in headings:
                 if sections[h]:
                     with st.expander(h, expanded=(h in ["Day 1"])):
                         st.write("\n".join(sections[h]))
 
-            # Download option
+            # Download full text
             st.download_button(
                 label="📥 Download Full Plan",
                 data=workout_text,
