@@ -5,7 +5,7 @@ from openai import OpenAI
 # HARD-CODED API KEY
 # ⚠️ Do not share this!
 # ------------------------
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 st.title("AI Fitness Coach 🏋️")
 
