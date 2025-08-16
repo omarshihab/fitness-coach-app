@@ -6,7 +6,7 @@ from openai import OpenAI
 # HARD-CODE YOUR API KEY HERE
 # ---------------------------
 client = OpenAI(
-  api_key="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",
+  api_key="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",
   organization="proj_sjKTbMIpTBHccx8NQOvW6Xbg" # IMPORTANT: REPLACE WITH YOUR PROJECT ID
 )
 
