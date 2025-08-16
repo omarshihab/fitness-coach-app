@@ -2,17 +2,22 @@ import streamlit as st
 import random
 from openai import OpenAI
 
-# Initialize OpenAI client (reads your key from Streamlit secrets)
-client = OpenAI(api_key=st.secrets["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"])
+# ---------------------------
+# HARD-CODE YOUR API KEY HERE
+# ---------------------------
+client = OpenAI(api_key="PASTE_YOUR_API_KEY_HERE")  # e.g., "sk-proj-abc123..."
 
-# Initialize session state
+st.set_page_config(page_title="AI Fitness Coach App", layout="wide")
+
+# ---------------------------
+# Session State & Login
+# ---------------------------
 if "username" not in st.session_state:
     st.session_state.username = ""
 
 if "user_data" not in st.session_state:
     st.session_state.user_data = {}
 
-# Login system
 def login():
     st.sidebar.title("👤 Login")
     username = st.sidebar.text_input("Enter your username")
@@ -30,7 +35,14 @@ if not st.session_state.username:
 
 username = st.session_state.username
 
-# AI Suggestions
+# ---------------------------
+# App Title
+# ---------------------------
+st.title("🏋️ AI Fitness Coach App")
+
+# ---------------------------
+# Sections / Features
+# ---------------------------
 def ai_suggestions():
     st.subheader("🧠 AI Suggestions")
     tips = [
@@ -42,7 +54,6 @@ def ai_suggestions():
     ]
     st.info(random.choice(tips))
 
-# Motivation Corner
 def motivation_corner():
     st.subheader("🌟 Motivation Corner")
     quotes = [
@@ -54,7 +65,6 @@ def motivation_corner():
     ]
     st.success(random.choice(quotes))
 
-# Meal Log & Feedback
 def meal_feedback():
     st.subheader("🍽️ Daily Meal Log & Feedback")
     breakfast = st.text_input("🍳 What did you have for breakfast?")
@@ -80,7 +90,6 @@ def meal_feedback():
         for f in feedback:
             st.write(f)
 
-# Body Stats & Goals
 def body_stats_and_goals():
     st.subheader("📏 Body Stats & Goals")
     height = st.number_input("📐 Height (cm)", min_value=100, max_value=250)
@@ -93,7 +102,6 @@ def body_stats_and_goals():
         st.session_state.user_data[username]["goal"] = goal
         st.success("✅ Stats saved!")
 
-# Weekly Workout Plan
 def show_weekly_plan():
     st.subheader("📅 Weekly Workout Plan")
     user_data = st.session_state.user_data[username]
@@ -115,7 +123,6 @@ def show_weekly_plan():
             user_data["weekly_plan"][day] = plan
             st.success(f"✅ Plan for {day} saved!")
 
-# Progress Tracker
 def progress_tracker():
     st.subheader("📈 Progress Tracker")
     weight_change = st.number_input("📊 Change in weight (kg)", step=0.1)
@@ -132,7 +139,6 @@ def progress_tracker():
         })
         st.success("📍 Progress saved!")
 
-# Workout Log
 def workout_log():
     st.subheader("🏋️ Workout Log")
     workout = st.text_input("🧾 What workout did you do today?")
@@ -147,7 +153,6 @@ def workout_log():
         })
         st.success("✅ Workout logged!")
 
-# Notes & Journal
 def notes_journal():
     st.subheader("📓 Notes & Journal")
     entry = st.text_area("🧠 Write anything you want to reflect on:")
@@ -157,7 +162,6 @@ def notes_journal():
         st.session_state.user_data[username]["journal"].append(entry)
         st.success("📝 Note saved!")
 
-# Hydration Log
 def hydration_log():
     st.subheader("💧 Hydration Tracker")
     water = st.number_input("How much water did you drink today? (in liters)", step=0.1)
@@ -167,33 +171,98 @@ def hydration_log():
         st.session_state.user_data[username]["hydration"].append(water)
         st.success("🥤 Hydration logged!")
 
-# AI 4-Day Workout Generator with GPT
+# ---------------------------
+# AI 4-Day Workout Generator
+# ---------------------------
 def ai_4day_workout():
     st.subheader("💪 AI 4-Day Workout Generator")
+
+    # personalisation inputs (optional)
+    display_name = st.text_input("Your name (optional)", username)
     goal = st.selectbox("🎯 Goal", ["Lose Weight", "Build Muscle", "Improve Stamina", "Stay Healthy"])
     equipment = st.text_input("🏋️ Available equipment (comma separated)", "Dumbbells, Resistance Bands, Pull-Up Bar")
-if st.button("Generate AI Plan"):
-    prompt = f"""
-    Create a detailed 4-day workout plan for a beginner whose goal is {goal}.
-    Available equipment: {equipment}.
-    Include exercise names, sets, reps, and notes for each day.
-    """  # ← Close the triple quotes here
+    level = st.selectbox("📚 Experience level", ["Beginner", "Intermediate", "Advanced"])
 
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a professional fitness trainer."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        st.markdown(response.choices[0].message.content)
-    except Exception as e:
-        st.error(f"Error: {e}")
+    if st.button("Generate AI Plan"):
+        prompt = f"""
+        Create a clear, structured 4-day workout plan for {display_name or "the user"}.
+        Goal: {goal}
+        Experience level: {level}
+        Available equipment: {equipment}
 
-# UI – Dropdowns in sidebar
-st.title("🏋️ AI Fitness Coach App")
+        Include these sections with headings exactly like this so I can parse them:
+        Warm-up:
+        Day 1:
+        Day 2:
+        Day 3:
+        Day 4:
+        Cool-down:
 
+        Each day must list exercises with sets and reps (4 sets per exercise where reasonable),
+        and brief notes for safety/progression. Keep it beginner-friendly if level is Beginner.
+        """
+
+        try:
+            resp = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a professional fitness trainer who writes concise, structured programs."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.8,
+            )
+            workout_text = resp.choices[0].message.content
+
+            # Save the raw plan to session for later download/reference
+            st.session_state.user_data[username]["ai_4day_plan"] = workout_text
+
+            # Parse into sections based on headings
+            headings = ["Warm-up", "Day 1", "Day 2", "Day 3", "Day 4", "Cool-down"]
+            sections = {h: [] for h in headings}
+            current = None
+
+            for line in workout_text.splitlines():
+                stripped = line.strip()
+                lower = stripped.lower()
+                # detect headings robustly
+                if lower.startswith("warm-up"):
+                    current = "Warm-up"
+                    continue
+                elif lower.startswith("day 1"):
+                    current = "Day 1"; continue
+                elif lower.startswith("day 2"):
+                    current = "Day 2"; continue
+                elif lower.startswith("day 3"):
+                    current = "Day 3"; continue
+                elif lower.startswith("day 4"):
+                    current = "Day 4"; continue
+                elif lower.startswith("cool-down"):
+                    current = "Cool-down"; continue
+
+                if current:
+                    sections[current].append(stripped)
+
+            st.success("Here’s your AI-generated 4-day plan!")
+
+            # Show as dropdowns/expanders
+            for h in headings:
+                if sections[h]:
+                    with st.expander(h, expanded=(h in ["Day 1"])):
+                        st.write("\n".join(sections[h]))
+
+            # Download full text
+            st.download_button(
+                label="📥 Download Full Plan",
+                data=workout_text,
+                file_name=f"{(display_name or username)}_4_day_workout.txt"
+            )
+
+        except Exception as e:
+            st.error(f"Error while generating plan: {e}")
+
+# ---------------------------
+# Sidebar Navigation
+# ---------------------------
 with st.sidebar:
     section = st.selectbox("📂 Navigate", [
         "🧠 AI Suggestions",
@@ -205,10 +274,12 @@ with st.sidebar:
         "🏋️ Workout Log",
         "📓 Notes & Journal",
         "💧 Hydration Log",
-        "💪 AI 4-Day Workout Generator"  # NEW SECTION
+        "💪 AI 4-Day Workout Generator"
     ])
 
-# Route user to the selected section
+# ---------------------------
+# Router
+# ---------------------------
 if section == "🧠 AI Suggestions":
     ai_suggestions()
 elif section == "🌟 Motivation Corner":
@@ -229,3 +300,4 @@ elif section == "💧 Hydration Log":
     hydration_log()
 elif section == "💪 AI 4-Day Workout Generator":
     ai_4day_workout()
+
