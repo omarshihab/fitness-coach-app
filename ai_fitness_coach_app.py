@@ -5,7 +5,7 @@ from openai import OpenAI
 # HARD-CODED API KEY
 # ⚠️ Do not share this!
 # ------------------------
-client = OpenAI(api_key="sk-proj-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+client = OpenAI(api_key="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")
 
 st.title("AI Fitness Coach 🏋️")
 
