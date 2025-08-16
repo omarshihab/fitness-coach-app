@@ -5,7 +5,10 @@ from openai import OpenAI
 # ---------------------------
 # HARD-CODE YOUR API KEY HERE
 # ---------------------------
-client = OpenAI(api_key="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")
+client = OpenAI(
+  api_key="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",
+  organization="proj_xxxxxxxxxxxxxxxxxxxxxxxx" # IMPORTANT: REPLACE WITH YOUR PROJECT ID
+)
 
 st.set_page_config(page_title="AI Fitness Coach App", layout="wide")
 
@@ -318,5 +321,4 @@ elif section == "💧 Hydration Log":
     hydration_log()
 elif section == "💪 AI 4-Day Workout Generator":
     ai_4day_workout()
-
 
