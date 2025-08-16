@@ -5,7 +5,7 @@ from openai import OpenAI
 # ---------------------------
 # HARD-CODE YOUR API KEY HERE
 # ---------------------------
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 st.set_page_config(page_title="AI Fitness Coach App", layout="wide")
 
