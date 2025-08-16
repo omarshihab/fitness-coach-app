@@ -177,7 +177,7 @@ def hydration_log():
 def ai_4day_workout():
     st.subheader("💪 AI 4-Day Workout Generator")
 
-    # personalisation inputs (optional)
+    # personalisation inputs
     display_name = st.text_input("Your name (optional)", username)
     goal = st.selectbox("🎯 Goal", ["Lose Weight", "Build Muscle", "Improve Stamina", "Stay Healthy"])
     equipment = st.text_input("🏋️ Available equipment (comma separated)", "Dumbbells, Resistance Bands, Pull-Up Bar")
@@ -213,10 +213,10 @@ def ai_4day_workout():
             )
             workout_text = resp.choices[0].message.content
 
-            # Save the raw plan to session for later download/reference
+            # Save to session
             st.session_state.user_data[username]["ai_4day_plan"] = workout_text
 
-            # Parse into sections based on headings
+            # Parse into sections
             headings = ["Warm-up", "Day 1", "Day 2", "Day 3", "Day 4", "Cool-down"]
             sections = {h: [] for h in headings}
             current = None
@@ -224,33 +224,25 @@ def ai_4day_workout():
             for line in workout_text.splitlines():
                 stripped = line.strip()
                 lower = stripped.lower()
-                # detect headings robustly
-                if lower.startswith("warm-up"):
-                    current = "Warm-up"
-                    continue
-                elif lower.startswith("day 1"):
-                    current = "Day 1"; continue
-                elif lower.startswith("day 2"):
-                    current = "Day 2"; continue
-                elif lower.startswith("day 3"):
-                    current = "Day 3"; continue
-                elif lower.startswith("day 4"):
-                    current = "Day 4"; continue
-                elif lower.startswith("cool-down"):
-                    current = "Cool-down"; continue
+                if lower.startswith("warm-up"): current = "Warm-up"; continue
+                elif lower.startswith("day 1"): current = "Day 1"; continue
+                elif lower.startswith("day 2"): current = "Day 2"; continue
+                elif lower.startswith("day 3"): current = "Day 3"; continue
+                elif lower.startswith("day 4"): current = "Day 4"; continue
+                elif lower.startswith("cool-down"): current = "Cool-down"; continue
 
                 if current:
                     sections[current].append(stripped)
 
             st.success("Here’s your AI-generated 4-day plan!")
 
-            # Show as dropdowns/expanders
+            # Show as dropdowns
             for h in headings:
                 if sections[h]:
                     with st.expander(h, expanded=(h in ["Day 1"])):
                         st.write("\n".join(sections[h]))
 
-            # Download full text
+            # Download option
             st.download_button(
                 label="📥 Download Full Plan",
                 data=workout_text,
@@ -300,4 +292,3 @@ elif section == "💧 Hydration Log":
     hydration_log()
 elif section == "💪 AI 4-Day Workout Generator":
     ai_4day_workout()
-
