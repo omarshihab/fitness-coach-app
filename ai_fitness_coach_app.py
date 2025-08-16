@@ -1,14 +1,20 @@
-import streamlit as st 
-import random 
-from openai import OpenAI 
+import streamlit as st
+import random
+from openai import OpenAI
+import os
+from dotenv import load_dotenv
 
 # ---------------------------
-# HARD-CODE YOUR API KEY + PROJECT ID HERE
+# Load API Key securely
 # ---------------------------
-client = OpenAI(
-    api_key="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",
-    project="proj_ro5y6asevklX4a0Mxd7HWvRA"  # <-- paste your Project ID here
-)
+load_dotenv()  # loads .env file
+api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    st.error("⚠️ No API key found. Please add it to a `.env` file.")
+    st.stop()
+
+client = OpenAI(api_key=api_key)
 
 st.set_page_config(page_title="AI Fitness Coach App", layout="wide")
 
@@ -112,7 +118,8 @@ def show_weekly_plan():
             st.markdown(f"**{day}**: {plan}")
 
     with st.form("weekly_plan_form"):
-        day = st.selectbox("📆 Select a day", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+        day = st.selectbox("📆 Select a day", 
+                           ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
         plan = st.text_area("✍️ Describe your workout:")
         submitted = st.form_submit_button("Save Plan")
         if submitted:
@@ -190,8 +197,9 @@ def ai_4day_workout():
         Day 3:
         Day 4:
         Cool-down:
+        Each day must list exercises with sets and reps (4 sets per exercise where reasonable),
+        and brief notes for safety/progression. Keep it beginner-friendly if level is Beginner.
         """
-
         try:
             resp = client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -202,13 +210,12 @@ def ai_4day_workout():
                 temperature=0.8,
             )
             workout_text = resp.choices[0].message.content
-
             st.session_state.user_data[username]["ai_4day_plan"] = workout_text
 
-            # Parse into sections
-            headings = ["Warm-up", "Day 1", "Day 2", "Day 3", "Day 4", "Cool-down"]
+            headings = ["Warm-up","Day 1","Day 2","Day 3","Day 4","Cool-down"]
             sections = {h: [] for h in headings}
             current = None
+
             for line in workout_text.splitlines():
                 stripped = line.strip()
                 lower = stripped.lower()
@@ -218,14 +225,12 @@ def ai_4day_workout():
                 elif lower.startswith("day 3"): current = "Day 3"; continue
                 elif lower.startswith("day 4"): current = "Day 4"; continue
                 elif lower.startswith("cool-down"): current = "Cool-down"; continue
-                if current:
-                    sections[current].append(stripped)
+                if current: sections[current].append(stripped)
 
             st.success("Here’s your AI-generated 4-day plan!")
-
             for h in headings:
                 if sections[h]:
-                    with st.expander(h, expanded=(h in ["Day 1"])):
+                    with st.expander(h, expanded=(h == "Day 1")):
                         st.write("\n".join(sections[h]))
 
             st.download_button(
@@ -256,23 +261,14 @@ with st.sidebar:
 # ---------------------------
 # Router
 # ---------------------------
-if section == "🧠 AI Suggestions":
-    ai_suggestions()
-elif section == "🌟 Motivation Corner":
-    motivation_corner()
-elif section == "🍽️ Meal Log & Feedback":
-    meal_feedback()
-elif section == "📏 Body Stats & Goals":
-    body_stats_and_goals()
-elif section == "📅 Weekly Workout Plan":
-    show_weekly_plan()
-elif section == "📈 Progress Tracker":
-    progress_tracker()
-elif section == "🏋️ Workout Log":
-    workout_log()
-elif section == "📓 Notes & Journal":
-    notes_journal()
-elif section == "💧 Hydration Log":
-    hydration_log()
-elif section == "💪 AI 4-Day Workout Generator":
-    ai_4day_workout()
+if section == "🧠 AI Suggestions": ai_suggestions()
+elif section == "🌟 Motivation Corner": motivation_corner()
+elif section == "🍽️ Meal Log & Feedback": meal_feedback()
+elif section == "📏 Body Stats & Goals": body_stats_and_goals()
+elif section == "📅 Weekly Workout Plan": show_weekly_plan()
+elif section == "📈 Progress Tracker": progress_tracker()
+elif section == "🏋️ Workout Log": workout_log()
+elif section == "📓 Notes & Journal": notes_journal()
+elif section == "💧 Hydration Log": hydration_log()
+elif section == "💪 AI 4-Day Workout Generator": ai_4day_workout()
+
