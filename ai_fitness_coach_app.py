@@ -7,7 +7,8 @@ from openai import OpenAI
 # ---------------------------
 client = OpenAI(
   api_key="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",
-  organization="proj_sjKTbMIpTBHccx8NQOvW6Xbg" # IMPORTANT: REPLACE WITH YOUR PROJECT ID
+  # Add the 'project' parameter with your project ID
+  project="proj_sjKTbMIpTBHccx8NQOvW6Xbg" 
 )
 
 st.set_page_config(page_title="AI Fitness Coach App", layout="wide")
